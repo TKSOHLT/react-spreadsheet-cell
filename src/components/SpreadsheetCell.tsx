@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import type { CellType, SelectOption } from '..';
 import { useSpreadsheetCell } from '../hooks/useSpreadsheetCell';
 
 interface SpreadsheetCellProps {
@@ -7,11 +6,11 @@ interface SpreadsheetCellProps {
   cellId: string;
   row: number;
   col: number;
-  cellType?: CellType;
+  cellType?: 'text' | 'number' | 'select';
   min?: number;
   max?: number;
   step?: number;
-  selectOptions?: SelectOption[];
+  selectOptions?: Array<{ value: string; label: string }>;
   disabled?: boolean;
   onValueChange?: (value: string) => void;
   onFocus?: () => void;
@@ -31,6 +30,9 @@ interface SpreadsheetCellProps {
   selectedBgColor?: string;
   selectedRingColor?: string;
   selectedRingWidth?: string;
+  multiSelectBgColor?: string;
+  multiSelectRingColor?: string;
+  multiSelectRingWidth?: string;
   copiedBgColor?: string;
   copiedOutlineColor?: string;
 }
@@ -64,6 +66,9 @@ export default function SpreadsheetCell({
   selectedBgColor = 'bg-blue-50',
   selectedRingColor = 'inset-ring-blue-500',
   selectedRingWidth = 'inset-ring-3',
+  multiSelectBgColor = 'bg-blue-100',
+  multiSelectRingColor = 'ring-blue-300',
+  multiSelectRingWidth = 'ring-1',
   copiedBgColor = 'bg-green-50',
   copiedOutlineColor = 'outline-green-500',
 }: SpreadsheetCellProps) {
@@ -86,11 +91,17 @@ export default function SpreadsheetCell({
     registerCellValue,
     getCopiedValue,
     clearCopiedCell,
+    isInSelection,
+    isDragging,
+    startDragging,
+    updateDragSelection,
+    stopDragging,
   } = useSpreadsheetCell();
 
   const isSelected = selectedCell === cellId;
   const isEditing = editingCell === cellId;
   const isCopied = copiedCell === cellId;
+  const inMultiSelection = isInSelection(cellId) && !isSelected;
 
   // Registrar la celda al montar
   useEffect(() => {
@@ -130,19 +141,16 @@ export default function SpreadsheetCell({
     if (!isSelected || isEditing || disabled) return;
 
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Si es una tecla imprimible
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
         setShouldSelectAll(false);
         startEditing(cellId);
-        // Limpiar el valor para empezar a escribir desde cero
         setValue(e.key);
         onValueChange?.(e.key);
       }
     };
 
     const handleKeyDown = async (e: KeyboardEvent) => {
-      // Paste: Ctrl+V o Cmd+V
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault();
         const copiedValue = getCopiedValue();
@@ -152,14 +160,12 @@ export default function SpreadsheetCell({
           clearCopiedCell();
           return;
         }
-        //Fallback para pegar lo que hay en el portapapeles
         const clipboardText = await navigator.clipboard.readText();
         if(clipboardText){
           setValue(clipboardText);
           onValueChange?.(clipboardText);
           return;
         }
-
         return;
       }
 
@@ -174,7 +180,6 @@ export default function SpreadsheetCell({
       if (e.key === 'Delete' && !isEditing) {
         e.preventDefault();
         e.stopPropagation();
-        // Limpiar el valor
         setValue('');
         onValueChange?.('');
       }
@@ -189,9 +194,32 @@ export default function SpreadsheetCell({
     };
   }, [isSelected, isEditing, cellId, stopEditing, disabled, getCopiedValue, clearCopiedCell]);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
     if (!isEditing && !disabled) {
-      selectCell(cellId);
+      // Shift+Click para extender selección
+      selectCell(cellId, e.shiftKey);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!disabled && !isEditing) {
+      // Si no es Shift+Click, iniciar drag-to-select
+      if (!e.shiftKey) {
+        e.preventDefault();
+        startDragging(cellId);
+      }
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (isDragging && !disabled && !isEditing) {
+      updateDragSelection(cellId);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      stopDragging();
     }
   };
 
@@ -243,38 +271,32 @@ export default function SpreadsheetCell({
 
     if (e.key === 'Tab' && e.shiftKey) {
       e.preventDefault();
-
       setValue(initialValue);
       stopEditing();
       onValueChange?.(initialValue);
-
       setTimeout(() => {
         navigateCell('left');
-      }, 1000);
+      }, 100);
       return;
     }
 
     if (e.key === 'Tab') {
       e.preventDefault();
-
       setValue(initialValue);
       stopEditing();
       onValueChange?.(initialValue);
-
       setTimeout(() => {
         navigateCell('right');
-      }, 1000);
+      }, 100);
       return;
     }
 
     if (['ArrowUp', 'ArrowDown'].includes(e.key)) {
       e.preventDefault();
       const direction = e.key.replace('Arrow', '').toLowerCase() as 'up' | 'down';
-
       setValue(initialValue);
       stopEditing();
       onValueChange?.(initialValue);
-
       setTimeout(() => {
         navigateCell(direction);
       }, 100);
@@ -349,12 +371,20 @@ export default function SpreadsheetCell({
     if (disabled) {
       classes.push(bgColorDisabled, 'cursor-not-allowed opacity-60');
     } else {
-      classes.push('cursor-pointer');
+      // Cursor durante drag
+      if (isDragging) {
+        classes.push('cursor-cell');
+      } else {
+        classes.push('cursor-pointer');
+      }
       
       if (isEditing) {
         classes.push(bgColorActive, ringWidthActive, ringColorActive, 'inset-shadow-lg inset-shadow-cyan-600');
       } else if (isSelected) {
         classes.push(selectedBgColor, selectedRingWidth, selectedRingColor);
+      } else if (inMultiSelection) {
+        // Nueva clase para celdas en selección múltiple
+        classes.push(multiSelectBgColor, multiSelectRingWidth, multiSelectRingColor);
       } else {
         classes.push(bgColorInactive, ringWidthInactive, ringColorInactive);
       }
@@ -363,7 +393,7 @@ export default function SpreadsheetCell({
         classes.push('outline-2 outline-dashed', copiedOutlineColor, copiedBgColor);
       }
 
-      if (!isEditing) {
+      if (!isEditing && !isDragging) {
         classes.push(hoverRingColor);
       }
     }
@@ -376,6 +406,9 @@ export default function SpreadsheetCell({
       ref={cellRef}
       className={getCellClasses()}
       onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseUp={handleMouseUp}
       onDoubleClick={handleDoubleClick}
     >
       {isEditing && !disabled ? renderEditMode() : <span className={`select-none ${disabled ? 'text-gray-900' : ''}`}>{value || ''}</span>}
