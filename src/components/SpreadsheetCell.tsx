@@ -15,6 +15,24 @@ interface SpreadsheetCellProps {
   disabled?: boolean;
   onValueChange?: (value: string) => void;
   onFocus?: () => void;
+  
+  padding?: string;
+  width?: string;
+  height?: string;
+  insetPadding?: string;
+  bgColorInactive?: string;
+  bgColorActive?: string;
+  bgColorDisabled?: string;
+  ringColorInactive?: string;
+  ringColorActive?: string;
+  ringWidthInactive?: string;
+  ringWidthActive?: string;
+  hoverRingColor?: string;
+  selectedBgColor?: string;
+  selectedRingColor?: string;
+  selectedRingWidth?: string;
+  copiedBgColor?: string;
+  copiedOutlineColor?: string;
 }
 
 export default function SpreadsheetCell({
@@ -30,6 +48,24 @@ export default function SpreadsheetCell({
   disabled = false,
   onValueChange,
   onFocus,
+  
+  padding = 'px-2 py-1',
+  width = 'w-40',
+  height = 'h-8',
+  insetPadding = 'px-2',
+  bgColorInactive = 'bg-white',
+  bgColorActive = 'bg-white',
+  bgColorDisabled = 'bg-gray-100',
+  ringColorInactive = 'ring-gray-200',
+  ringColorActive = 'inset-ring-blue-600',
+  ringWidthInactive = 'inset-ring-[0]',
+  ringWidthActive = 'inset-ring-1',
+  hoverRingColor = 'hover:ring-gray-300',
+  selectedBgColor = 'bg-blue-50',
+  selectedRingColor = 'inset-ring-blue-500',
+  selectedRingWidth = 'inset-ring-3',
+  copiedBgColor = 'bg-green-50',
+  copiedOutlineColor = 'outline-green-500',
 }: SpreadsheetCellProps) {
   const [value, setValue] = useState<string>(initialValue);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -193,6 +229,7 @@ export default function SpreadsheetCell({
         setValue(initialValue);
         stopEditing();
         onValueChange?.(initialValue);
+        navigateCell('down');
       }
       return;
     }
@@ -246,6 +283,8 @@ export default function SpreadsheetCell({
   };
 
   const renderEditMode = () => {
+    const inputClassName = `w-full h-full outline-none ${bgColorActive} ${insetPadding} disabled:${bgColorDisabled} disabled:cursor-not-allowed`;
+    
     if (cellType === 'select') {
       return (
         <select
@@ -255,7 +294,7 @@ export default function SpreadsheetCell({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          className="w-full h-full outline-none bg-white px-2 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={inputClassName}
         >
           <option value="">Seleccionar...</option>
           {selectOptions.map((option) => (
@@ -280,7 +319,7 @@ export default function SpreadsheetCell({
           max={max}
           step={step}
           disabled={disabled}
-          className="w-full h-full outline-none bg-white px-2 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={inputClassName}
         />
       );
     }
@@ -294,22 +333,48 @@ export default function SpreadsheetCell({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className="w-full h-full outline-none bg-white px-2 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        className={inputClassName}
       />
     );
+  };
+
+  const getCellClasses = () => {
+    const classes = [
+      'min-w-40 max-w-full min-h-full transition-all',
+      padding,
+      width,
+      height
+    ];
+
+    if (disabled) {
+      classes.push(bgColorDisabled, 'cursor-not-allowed opacity-60');
+    } else {
+      classes.push('cursor-pointer');
+      
+      if (isEditing) {
+        classes.push(bgColorActive, ringWidthActive, ringColorActive, 'inset-shadow-lg inset-shadow-cyan-600');
+      } else if (isSelected) {
+        classes.push(selectedBgColor, selectedRingWidth, selectedRingColor);
+      } else {
+        classes.push(bgColorInactive, ringWidthInactive, ringColorInactive);
+      }
+
+      if (isCopied && !isEditing) {
+        classes.push('outline-2 outline-dashed', copiedOutlineColor, copiedBgColor);
+      }
+
+      if (!isEditing) {
+        classes.push(hoverRingColor);
+      }
+    }
+
+    return classes.join(' ');
   };
 
   return (
     <div
       ref={cellRef}
-      className={`
-        min-w-40 max-w-full min-h-full px-4 py-3 transition-all
-        ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'cursor-pointer'}
-        ${isSelected && !isEditing ? 'inset-ring-3 inset-ring-blue-500 bg-blue-50' : 'inset-ring-[0] ring-gray-200'}
-        ${isEditing && !disabled ? 'inset-ring-1 inset-ring-blue-600 bg-white inset-shadow-lg inset-shadow-cyan-600' : ''}
-        ${isCopied && !isEditing ? 'outline-2 outline-dashed outline-green-500 bg-green-50' : ''}
-        ${!disabled ? 'hover:ring-gray-300' : ''}
-      `}
+      className={getCellClasses()}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
