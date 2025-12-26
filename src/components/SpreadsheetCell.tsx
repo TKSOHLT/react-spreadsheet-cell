@@ -90,9 +90,12 @@ export default function SpreadsheetCell({
     copiedCell,
     registerCellValue,
     getCopiedValue,
+    getCopiedData,
     clearCopiedCell,
     isInSelection,
+    isInCopiedRange,
     isDragging,
+    dragStartCell,
     startDragging,
     updateDragSelection,
     stopDragging,
@@ -100,7 +103,7 @@ export default function SpreadsheetCell({
 
   const isSelected = selectedCell === cellId;
   const isEditing = editingCell === cellId;
-  const isCopied = copiedCell === cellId;
+  const isCopied = isInCopiedRange(cellId);
   const inMultiSelection = isInSelection(cellId) && !isSelected;
 
   // Registrar la celda al montar
@@ -151,21 +154,67 @@ export default function SpreadsheetCell({
     };
 
     const handleKeyDown = async (e: KeyboardEvent) => {
+      // Paste con Ctrl+V o Cmd+V
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault();
-        const copiedValue = getCopiedValue();
-        if (copiedValue !== null) {
-          setValue(copiedValue);
-          onValueChange?.(copiedValue);
+        
+        // Intentar pegar datos copiados del spreadsheet
+        const copiedData = getCopiedData();
+        
+        if (copiedData) {
+          // Paste masivo - pegar en múltiples celdas
+          const { values } = copiedData;
+          const [currentRow, currentCol] = cellId.split('-').map(Number);
+          
+          // Iterar sobre los valores copiados y actualizar celdas
+          for (let r = 0; r < values.length; r++) {
+            for (let c = 0; c < values[r].length; c++) {
+              const targetRow = currentRow + r;
+              const targetCol = currentCol + c;
+              const targetCellId = `${targetRow}-${targetCol}`;
+              
+              if (targetCellId === cellId) {
+                setValue(values[r][c]);
+                onValueChange?.(values[r][c]);
+              }
+            }
+          }
+          
           clearCopiedCell();
           return;
         }
-        const clipboardText = await navigator.clipboard.readText();
-        if(clipboardText){
-          setValue(clipboardText);
-          onValueChange?.(clipboardText);
-          return;
+        
+        // Si no hay datos copiados del spreadsheet, intentar del clipboard
+        try {
+          const clipboardText = await navigator.clipboard.readText();
+          
+          if (clipboardText) {
+            const hasMultipleCells = clipboardText.includes('\t') || clipboardText.includes('\n');
+            
+            if (hasMultipleCells) {
+              const rows = clipboardText.split('\n').map(row => row.split('\t'));
+              const [currentRow, currentCol] = cellId.split('-').map(Number);
+              
+              for (let r = 0; r < rows.length; r++) {
+                for (let c = 0; c < rows[r].length; c++) {
+                  const targetCellId = `${currentRow + r}-${currentCol + c}`;
+                  
+                  if (targetCellId === cellId) {
+                    setValue(rows[r][c]);
+                    onValueChange?.(rows[r][c]);
+                  }
+                }
+              }
+            } else {
+              // Paste simple de una sola celda
+              setValue(clipboardText);
+              onValueChange?.(clipboardText);
+            }
+          }
+        } catch (error) {
+          console.error('Error al pegar del clipboard:', error);
         }
+        
         return;
       }
 
@@ -192,18 +241,18 @@ export default function SpreadsheetCell({
       window.removeEventListener('keypress', handleKeyPress);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isSelected, isEditing, cellId, stopEditing, disabled, getCopiedValue, clearCopiedCell]);
+  }, [isSelected, isEditing, cellId, stopEditing, disabled, getCopiedValue, getCopiedData, clearCopiedCell, row, col]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isEditing && !disabled) {
-      // Shift+Click para extender selección
-      selectCell(cellId, e.shiftKey);
+      if (!isDragging) {
+        selectCell(cellId, e.shiftKey);
+      }
     }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!disabled && !isEditing) {
-      // Si no es Shift+Click, iniciar drag-to-select
       if (!e.shiftKey) {
         e.preventDefault();
         startDragging(cellId);
@@ -212,13 +261,13 @@ export default function SpreadsheetCell({
   };
 
   const handleMouseEnter = () => {
-    if (isDragging && !disabled && !isEditing) {
+    if (dragStartCell && !disabled && !isEditing) {
       updateDragSelection(cellId);
     }
   };
 
   const handleMouseUp = () => {
-    if (isDragging) {
+    if (isDragging || dragStartCell) {
       stopDragging();
     }
   };
@@ -372,7 +421,7 @@ export default function SpreadsheetCell({
       classes.push(bgColorDisabled, 'cursor-not-allowed opacity-60');
     } else {
       // Cursor durante drag
-      if (isDragging) {
+      if (isDragging || dragStartCell) {
         classes.push('cursor-cell');
       } else {
         classes.push('cursor-pointer');
@@ -383,7 +432,6 @@ export default function SpreadsheetCell({
       } else if (isSelected) {
         classes.push(selectedBgColor, selectedRingWidth, selectedRingColor);
       } else if (inMultiSelection) {
-        // Nueva clase para celdas en selección múltiple
         classes.push(multiSelectBgColor, multiSelectRingWidth, multiSelectRingColor);
       } else {
         classes.push(bgColorInactive, ringWidthInactive, ringColorInactive);
@@ -393,7 +441,7 @@ export default function SpreadsheetCell({
         classes.push('outline-2 outline-dashed', copiedOutlineColor, copiedBgColor);
       }
 
-      if (!isEditing && !isDragging) {
+      if (!isEditing && !isDragging && !dragStartCell) {
         classes.push(hoverRingColor);
       }
     }

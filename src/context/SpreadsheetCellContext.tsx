@@ -1,8 +1,16 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useEffect, useRef, useState } from 'react';
 
 interface CellPosition {
   row: number;
   col: number;
+}
+
+interface CopiedData {
+  startRow: number;
+  startCol: number;
+  rows: number;
+  cols: number;
+  values: string[][];
 }
 
 interface SpreadsheetContextValue {
@@ -25,20 +33,16 @@ interface SpreadsheetContextValue {
   isInSelection: (cellId: string) => boolean;
   clearSelection: () => void;
   isDragging: boolean;
-  startDragging: (cellId: string) => void
+  dragStartCell: string | null;
+  startDragging: (cellId: string) => void;
   updateDragSelection: (cellId: string) => void;
   stopDragging: () => void;
+  copiedData: CopiedData | null;
+  getCopiedData: () => CopiedData | null;
+  isInCopiedRange: (cellId: string) => boolean;
 }
 
 export const SpreadsheetContext = createContext<SpreadsheetContextValue | null>(null);
-
-export function useSpreadsheetCell() {
-  const context = useContext(SpreadsheetContext);
-  if (!context) {
-    throw new Error('useSpreadsheetCell debe usarse dentro de SpreadsheetProvider');
-  }
-  return context;
-}
 
 export default function SpreadsheetProvider({ children }: { children: React.ReactNode }) {
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
@@ -47,7 +51,9 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
   const [selectionEnd, setSelectionEnd] = useState<string | null>(null);
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [copiedCell, setCopiedCell] = useState<string | null>(null);
+  const [copiedData, setCopiedData] = useState<CopiedData | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragStartCell, setDragStartCell] = useState<string | null>(null);
 
   const cellRegistry = useRef<Map<string, CellPosition>>(new Map());
   const cellElementsRef = useRef<Set<HTMLElement>>(new Set());
@@ -82,9 +88,11 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     if (selectionStart && selectionEnd) {
       const newSelection = getCellsInRange(selectionStart, selectionEnd);
       setSelectedCells(newSelection);
-    } else if (selectedCell) {
+    }
+    else if (selectedCell && !selectionStart && !selectionEnd) {
       setSelectedCells(new Set([selectedCell]));
-    } else {
+    }
+    else if (!selectedCell && !selectionStart && !selectionEnd) {
       setSelectedCells(new Set());
     }
   }, [selectionStart, selectionEnd, selectedCell]);
@@ -132,7 +140,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, editingCell, selectionStart, selectionEnd]);
+  }, [selectedCell, editingCell, selectionStart, selectionEnd, selectedCells]);
 
   // Listener para clicks fuera de las celdas
   useEffect(() => {
@@ -154,7 +162,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     // Listener global para mouseup
     const handleMouseUp = () => {
       if (isDragging) {
-        setIsDragging(false);
+        stopDragging();
       }
     };
 
@@ -263,16 +271,74 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     cellValuesRef.current.set(cellId, value);
   };
 
+  useEffect(() => {
+    console.log("Useeffect", selectedCells);
+  }, [selectedCells]);
+
   const copyCell = () => {
     if (!selectedCell) return;
+    // Si hay múltiples celdas seleccionadas
+    if (selectedCells.size > 1) {
+      // Obtener el rango rectangular
+      const cells = Array.from(selectedCells);
+      const positions = cells
+        .map((id) => {
+          const pos = cellRegistry.current.get(id);
+          const [row, col] = id.split('-').map(Number);
+          return { id, row, col, pos };
+        })
+        .filter((cell) => cell.pos);
 
-    const value = cellValuesRef.current.get(selectedCell) || '';
-    setCopiedCell(selectedCell);
+      if (positions.length === 0) return;
 
-    try {
-      navigator.clipboard.writeText(value);
-    } catch (error) {
-      console.error('Error copiando al clipboard:', error);
+      const minRow = Math.min(...positions.map((p) => p.row));
+      const maxRow = Math.max(...positions.map((p) => p.row));
+      const minCol = Math.min(...positions.map((p) => p.col));
+      const maxCol = Math.max(...positions.map((p) => p.col));
+
+      const rows = maxRow - minRow + 1;
+      const cols = maxCol - minCol + 1;
+
+      // Crear matriz de valores
+      const values: string[][] = [];
+      for (let r = 0; r < rows; r++) {
+        values[r] = [];
+        for (let c = 0; c < cols; c++) {
+          const cellId = `${minRow + r}-${minCol + c}`;
+          values[r][c] = cellValuesRef.current.get(cellId) || '';
+        }
+      }
+
+      // Guardar datos copiados
+      const copiedInfo: CopiedData = {
+        startRow: minRow,
+        startCol: minCol,
+        rows,
+        cols,
+        values,
+      };
+
+      setCopiedData(copiedInfo);
+      setCopiedCell(`${minRow}-${minCol}`);
+
+      // Copiar al clipboard como texto con tabs y saltos de línea
+      const clipboardText = values.map((row) => row.join('\t')).join('\n');
+      try {
+        navigator.clipboard.writeText(clipboardText);
+      } catch (error) {
+        console.error('Error copiando al clipboard:', error);
+      }
+    } else {
+      // Copiar celda única (comportamiento original)
+      const value = cellValuesRef.current.get(selectedCell) || '';
+      setCopiedCell(selectedCell);
+      setCopiedData(null);
+
+      try {
+        navigator.clipboard.writeText(value);
+      } catch (error) {
+        console.error('Error copiando al clipboard:', error);
+      }
     }
   };
 
@@ -281,13 +347,28 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     return cellValuesRef.current.get(copiedCell) || null;
   };
 
+  const getCopiedData = (): CopiedData | null => {
+    return copiedData;
+  };
+
+  const isInCopiedRange = (cellId: string): boolean => {
+    if (!copiedData) return cellId === copiedCell;
+
+    const [row, col] = cellId.split('-').map(Number);
+    const { startRow, startCol, rows, cols } = copiedData;
+
+    return row >= startRow && row < startRow + rows && col >= startCol && col < startCol + cols;
+  };
+
   const clearCopiedCell = () => {
     setCopiedCell(null);
+    setCopiedData(null);
   };
 
   // Funciones de drag-to-select
   const startDragging = (cellId: string) => {
     setIsDragging(true);
+    setDragStartCell(cellId);
     setSelectedCell(cellId);
     setSelectionStart(cellId);
     setSelectionEnd(cellId);
@@ -303,6 +384,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
 
   const stopDragging = () => {
     setIsDragging(false);
+    setDragStartCell(null);
   };
 
   const value: SpreadsheetContextValue = {
@@ -325,9 +407,13 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     isInSelection,
     clearSelection,
     isDragging,
+    dragStartCell,
     startDragging,
     updateDragSelection,
     stopDragging,
+    copiedData,
+    getCopiedData,
+    isInCopiedRange,
   };
 
   return <SpreadsheetContext.Provider value={value}>{children}</SpreadsheetContext.Provider>;
