@@ -5,6 +5,15 @@ interface CellPosition {
   col: number;
 }
 
+interface SelectedRange {
+  minRow: number;
+  maxRow: number;
+  minCol: number;
+  maxCol: number;
+  rows: number;
+  cols: number;
+}
+
 interface CopiedData {
   startRow: number;
   startCol: number;
@@ -40,6 +49,7 @@ interface SpreadsheetContextValue {
   copiedData: CopiedData | null;
   getCopiedData: () => CopiedData | null;
   isInCopiedRange: (cellId: string) => boolean;
+  getSelectedRange: () => SelectedRange | null;
 }
 
 export const SpreadsheetContext = createContext<SpreadsheetContextValue | null>(null);
@@ -83,16 +93,54 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     return cells;
   };
 
+  const getSelectedRange = (): SelectedRange | null => {
+    if (selectedCells.size === 0) return null;
+
+    if (selectedCells.size === 1 && selectedCell) {
+      const pos = cellRegistry.current.get(selectedCell);
+      if (!pos) return null;
+
+      return {
+        minRow: pos.row,
+        maxRow: pos.row,
+        minCol: pos.col,
+        maxCol: pos.col,
+        rows: 1,
+        cols: 1,
+      };
+    }
+
+    const cells = Array.from(selectedCells);
+    const positions = cells.map((id) => {
+      const [row, col] = id.split('-').map(Number);
+      return { row, col };
+    });
+
+    if (positions.length === 0) return null;
+
+    const minRow = Math.min(...positions.map((p) => p.row));
+    const maxRow = Math.max(...positions.map((p) => p.row));
+    const minCol = Math.min(...positions.map((p) => p.col));
+    const maxCol = Math.max(...positions.map((p) => p.col));
+
+    return {
+      minRow,
+      maxRow,
+      minCol,
+      maxCol,
+      rows: maxRow - minRow + 1,
+      cols: maxCol - minCol + 1,
+    };
+  };
+
   // Actualizar la selección cuando cambia el rango
   useEffect(() => {
     if (selectionStart && selectionEnd) {
       const newSelection = getCellsInRange(selectionStart, selectionEnd);
       setSelectedCells(newSelection);
-    }
-    else if (selectedCell && !selectionStart && !selectionEnd) {
+    } else if (selectedCell && !selectionStart && !selectionEnd) {
       setSelectedCells(new Set([selectedCell]));
-    }
-    else if (!selectedCell && !selectionStart && !selectionEnd) {
+    } else if (!selectedCell && !selectionStart && !selectionEnd) {
       setSelectedCells(new Set());
     }
   }, [selectionStart, selectionEnd, selectedCell]);
@@ -272,7 +320,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
   };
 
   useEffect(() => {
-    console.log("Useeffect", selectedCells);
+    console.log('Useeffect', selectedCells);
   }, [selectedCells]);
 
   const copyCell = () => {
@@ -414,6 +462,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     copiedData,
     getCopiedData,
     isInCopiedRange,
+    getSelectedRange
   };
 
   return <SpreadsheetContext.Provider value={value}>{children}</SpreadsheetContext.Provider>;

@@ -14,7 +14,7 @@ interface SpreadsheetCellProps {
   disabled?: boolean;
   onValueChange?: (value: string) => void;
   onFocus?: () => void;
-  
+
   padding?: string;
   width?: string;
   height?: string;
@@ -50,7 +50,7 @@ export default function SpreadsheetCell({
   disabled = false,
   onValueChange,
   onFocus,
-  
+
   padding = 'px-2 py-1',
   width = 'w-40',
   height = 'h-8',
@@ -78,16 +78,15 @@ export default function SpreadsheetCell({
   const cellRef = useRef<HTMLDivElement | null>(null);
   const [shouldSelectAll, setShouldSelectAll] = useState(true);
 
-  const { 
-    selectedCell, 
-    selectCell, 
-    editingCell, 
-    startEditing, 
-    stopEditing, 
-    registerCell, 
-    unregisterCell, 
+  const {
+    selectedCell,
+    selectCell,
+    editingCell,
+    startEditing,
+    stopEditing,
+    registerCell,
+    unregisterCell,
     navigateCell,
-    copiedCell,
     registerCellValue,
     getCopiedValue,
     getCopiedData,
@@ -99,7 +98,8 @@ export default function SpreadsheetCell({
     startDragging,
     updateDragSelection,
     stopDragging,
-  } = useSpreadsheetCell();
+    getSelectedRange
+    } = useSpreadsheetCell();
 
   const isSelected = selectedCell === cellId;
   const isEditing = editingCell === cellId;
@@ -157,53 +157,90 @@ export default function SpreadsheetCell({
       // Paste con Ctrl+V o Cmd+V
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault();
-        
+
         // Intentar pegar datos copiados del spreadsheet
         const copiedData = getCopiedData();
-        
+
         if (copiedData) {
-          // Paste masivo - pegar en múltiples celdas
           const { values } = copiedData;
-          const [currentRow, currentCol] = cellId.split('-').map(Number);
-          
-          // Iterar sobre los valores copiados y actualizar celdas
-          for (let r = 0; r < values.length; r++) {
-            for (let c = 0; c < values[r].length; c++) {
-              const targetRow = currentRow + r;
-              const targetCol = currentCol + c;
-              const targetCellId = `${targetRow}-${targetCol}`;
-              
-              if (targetCellId === cellId) {
-                setValue(values[r][c]);
-                onValueChange?.(values[r][c]);
-              }
-            }
+          const selectedRange = getSelectedRange();
+
+          // Si hay un rango seleccionado
+          if ((selectedRange && selectedRange.rows > 1) || (selectedRange && selectedRange.cols > 1)) {
+            const { minRow, minCol, rows: selectedRows, cols: selectedCols } = selectedRange;
+            const copiedRows = values.length;
+            const copiedCols = values[0]?.length || 0;
+
+            const pasteEvent = new CustomEvent('spreadsheet-paste-range', {
+              detail: {
+                startRow: minRow,
+                startCol: minCol,
+                targetRows: selectedRows,
+                targetCols: selectedCols,
+                copiedRows,
+                copiedCols,
+                values: values,
+              },
+            });
+            window.dispatchEvent(pasteEvent);
+          } else {
+            // Pegar desde una celda específica
+            const [currentRow, currentCol] = cellId.split('-').map(Number);
+
+            const pasteEvent = new CustomEvent('spreadsheet-paste', {
+              detail: {
+                startRow: currentRow,
+                startCol: currentCol,
+                values: values,
+              },
+            });
+            window.dispatchEvent(pasteEvent);
           }
-          
+
           clearCopiedCell();
           return;
         }
-        
+
         // Si no hay datos copiados del spreadsheet, intentar del clipboard
         try {
           const clipboardText = await navigator.clipboard.readText();
-          
+
           if (clipboardText) {
             const hasMultipleCells = clipboardText.includes('\t') || clipboardText.includes('\n');
-            
+
             if (hasMultipleCells) {
-              const rows = clipboardText.split('\n').map(row => row.split('\t'));
+              const rows = clipboardText.split('\n').map((row) => row.split('\t'));
               const [currentRow, currentCol] = cellId.split('-').map(Number);
-              
-              for (let r = 0; r < rows.length; r++) {
-                for (let c = 0; c < rows[r].length; c++) {
-                  const targetCellId = `${currentRow + r}-${currentCol + c}`;
-                  
-                  if (targetCellId === cellId) {
-                    setValue(rows[r][c]);
-                    onValueChange?.(rows[r][c]);
-                  }
-                }
+              const selectedRange = getSelectedRange();
+
+              if (selectedRange && (selectedRange.rows > 1 || selectedRange.cols > 1)) {
+                // Pegar en rango seleccionado
+                const { minRow, minCol, rows: selectedRows, cols: selectedCols } = selectedRange;
+                const copiedRows = rows.length;
+                const copiedCols = rows[0]?.length || 0;
+
+                const pasteEvent = new CustomEvent('spreadsheet-paste-range', {
+                  detail: {
+                    startRow: minRow,
+                    startCol: minCol,
+                    targetRows: selectedRows,
+                    targetCols: selectedCols,
+                    copiedRows,
+                    copiedCols,
+                    values: rows,
+                  },
+                });
+                window.dispatchEvent(pasteEvent);
+              } else {
+                // Pegar desde celda específica
+                const pasteEvent = new CustomEvent('spreadsheet-paste', {
+                  detail: {
+                    startRow: currentRow,
+                    startCol: currentCol,
+                    values: rows,
+                  },
+                });
+                window.dispatchEvent(pasteEvent);
               }
             } else {
               // Paste simple de una sola celda
@@ -214,7 +251,7 @@ export default function SpreadsheetCell({
         } catch (error) {
           console.error('Error al pegar del clipboard:', error);
         }
-        
+
         return;
       }
 
@@ -242,6 +279,76 @@ export default function SpreadsheetCell({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isSelected, isEditing, cellId, stopEditing, disabled, getCopiedValue, getCopiedData, clearCopiedCell, row, col]);
+
+  // Listener para eventos de paste múltiple
+  useEffect(() => {
+    const handlePaste = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        startRow: number;
+        startCol: number;
+        values: string[][];
+      }>;
+
+      const { startRow, startCol, values } = customEvent.detail;
+
+      // Verificar si esta celda está dentro del rango de pegado
+      for (let r = 0; r < values.length; r++) {
+        for (let c = 0; c < values[r].length; c++) {
+          const targetRow = startRow + r;
+          const targetCol = startCol + c;
+          const targetCellId = `${targetRow}-${targetCol}`;
+
+          if (targetCellId === cellId) {
+            setValue(values[r][c]);
+            onValueChange?.(values[r][c]);
+            return;
+          }
+        }
+      }
+    };
+
+    const handlePasteRange = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        startRow: number;
+        startCol: number;
+        targetRows: number;
+        targetCols: number;
+        copiedRows: number;
+        copiedCols: number;
+        values: string[][];
+      }>;
+
+      const { startRow, startCol, targetRows, targetCols, copiedRows, copiedCols, values } = customEvent.detail;
+
+      // Verificar si esta celda está dentro del rango de pegado
+      for (let r = 0; r < targetRows; r++) {
+        for (let c = 0; c < targetCols; c++) {
+          const targetRow = startRow + r;
+          const targetCol = startCol + c;
+          const targetCellId = `${targetRow}-${targetCol}`;
+
+          if (targetCellId === cellId) {
+            // Usar módulo para repetir el patrón
+            const sourceRow = r % copiedRows;
+            const sourceCol = c % copiedCols;
+            const value = values[sourceRow]?.[sourceCol] || '';
+
+            setValue(value);
+            onValueChange?.(value);
+            return;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('spreadsheet-paste', handlePaste);
+    window.addEventListener('spreadsheet-paste-range', handlePasteRange);
+
+    return () => {
+      window.removeEventListener('spreadsheet-paste', handlePaste);
+      window.removeEventListener('spreadsheet-paste-range', handlePasteRange);
+    };
+  }, [cellId, onValueChange]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isEditing && !disabled) {
@@ -355,7 +462,7 @@ export default function SpreadsheetCell({
 
   const renderEditMode = () => {
     const inputClassName = `w-full h-full outline-none ${bgColorActive} ${insetPadding} disabled:${bgColorDisabled} disabled:cursor-not-allowed`;
-    
+
     if (cellType === 'select') {
       return (
         <select
@@ -410,12 +517,7 @@ export default function SpreadsheetCell({
   };
 
   const getCellClasses = () => {
-    const classes = [
-      'min-w-40 max-w-full min-h-full transition-all',
-      padding,
-      width,
-      height
-    ];
+    const classes = ['min-w-40 max-w-full min-h-full transition-all', padding, width, height];
 
     if (disabled) {
       classes.push(bgColorDisabled, 'cursor-not-allowed opacity-60');
@@ -426,7 +528,7 @@ export default function SpreadsheetCell({
       } else {
         classes.push('cursor-pointer');
       }
-      
+
       if (isEditing) {
         classes.push(bgColorActive, ringWidthActive, ringColorActive, 'inset-shadow-lg inset-shadow-cyan-600');
       } else if (isSelected) {
