@@ -98,8 +98,8 @@ export default function SpreadsheetCell({
     startDragging,
     updateDragSelection,
     stopDragging,
-    getSelectedRange
-    } = useSpreadsheetCell();
+    getSelectedRange,
+  } = useSpreadsheetCell();
 
   const isSelected = selectedCell === cellId;
   const isEditing = editingCell === cellId;
@@ -252,6 +252,7 @@ export default function SpreadsheetCell({
           console.error('Error al pegar del clipboard:', error);
         }
 
+        clearCopiedCell();
         return;
       }
 
@@ -347,6 +348,28 @@ export default function SpreadsheetCell({
     return () => {
       window.removeEventListener('spreadsheet-paste', handlePaste);
       window.removeEventListener('spreadsheet-paste-range', handlePasteRange);
+    };
+  }, [cellId, onValueChange]);
+
+  //Listener para eliminar multiples celdas
+  useEffect(() => {
+    const handleDeleteCells = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        cellIds: string[];
+      }>;
+
+      const { cellIds } = customEvent.detail;
+
+      if (cellIds.includes(cellId)) {
+        setValue('');
+        onValueChange?.('');
+      }
+    };
+
+    window.addEventListener('spreadsheet-delete-cells', handleDeleteCells);
+
+    return () => {
+      window.removeEventListener('spreadsheet-delete-cells', handleDeleteCells);
     };
   }, [cellId, onValueChange]);
 

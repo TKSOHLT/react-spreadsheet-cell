@@ -50,6 +50,7 @@ interface SpreadsheetContextValue {
   getCopiedData: () => CopiedData | null;
   isInCopiedRange: (cellId: string) => boolean;
   getSelectedRange: () => SelectedRange | null;
+  deleteSelectedCells: () => void;
 }
 
 export const SpreadsheetContext = createContext<SpreadsheetContextValue | null>(null);
@@ -65,7 +66,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartCell, setDragStartCell] = useState<string | null>(null);
 
-  const cellRegistry = useRef<Map<string, CellPosition>>(new Map());
+  const cellRegistry = useRef<Map<string, CellPosition & { element?: HTMLDivElement }>>(new Map());
   const cellElementsRef = useRef<Set<HTMLElement>>(new Set());
   const cellValuesRef = useRef<Map<string, string>>(new Map());
 
@@ -133,6 +134,20 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     };
   };
 
+  const deleteSelectedCells = () => {
+    if (selectedCells.size === 0) return;
+
+    const cells = Array.from(selectedCells);
+
+    const deleteEvent = new CustomEvent('spreadsheet-delete-cells', {
+      detail: {
+        cellIds: cells,
+      },
+    });
+
+    window.dispatchEvent(deleteEvent);
+  };
+
   // Actualizar la selección cuando cambia el rango
   useEffect(() => {
     if (selectionStart && selectionEnd) {
@@ -181,6 +196,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
         // Eliminar contenido de celdas seleccionadas
         if (e.key === 'Delete') {
           e.preventDefault();
+          deleteSelectedCells();
           return;
         }
       }
@@ -264,7 +280,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
   };
 
   const registerCell = (cellId: string, row: number, col: number, element?: HTMLDivElement) => {
-    cellRegistry.current.set(cellId, { row, col });
+    cellRegistry.current.set(cellId, { row, col, element });
     if (element) {
       cellElementsRef.current.add(element);
     }
@@ -274,6 +290,18 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     cellRegistry.current.delete(cellId);
     if (element) {
       cellElementsRef.current.delete(element);
+    }
+  };
+
+  const scrollCellIntoView = (cellId: string) => {
+    const cellData = cellRegistry.current.get(cellId);
+
+    if (cellData?.element) {
+      cellData.element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
     }
   };
 
@@ -312,16 +340,16 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
       } else {
         selectCell(targetCellId, false);
       }
+
+      setTimeout(() => {
+        scrollCellIntoView(targetCellId);
+      }, 10);
     }
   };
 
   const registerCellValue = (cellId: string, value: string) => {
     cellValuesRef.current.set(cellId, value);
   };
-
-  useEffect(() => {
-    console.log('Useeffect', selectedCells);
-  }, [selectedCells]);
 
   const copyCell = () => {
     if (!selectedCell) return;
@@ -401,7 +429,6 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
 
   const isInCopiedRange = (cellId: string): boolean => {
     if (!copiedData) return cellId === copiedCell;
-
     const [row, col] = cellId.split('-').map(Number);
     const { startRow, startCol, rows, cols } = copiedData;
 
@@ -427,6 +454,7 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     if (isDragging && selectionStart) {
       setSelectionEnd(cellId);
       setSelectedCell(cellId);
+      scrollCellIntoView(cellId);
     }
   };
 
@@ -462,7 +490,8 @@ export default function SpreadsheetProvider({ children }: { children: React.Reac
     copiedData,
     getCopiedData,
     isInCopiedRange,
-    getSelectedRange
+    getSelectedRange,
+    deleteSelectedCells,
   };
 
   return <SpreadsheetContext.Provider value={value}>{children}</SpreadsheetContext.Provider>;
