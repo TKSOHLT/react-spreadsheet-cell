@@ -7,7 +7,7 @@ import Router from './router/router.tsx';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SpreadsheetProvider>
-      <Router />
+      <Router  />
     </SpreadsheetProvider>
   </StrictMode>
 );

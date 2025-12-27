@@ -2,26 +2,30 @@ import { useState } from 'react';
 import SpreadsheetCell from './components/SpreadsheetCell';
 
 function App() {
-  const [cells, setCells] = useState<Record<string, string>>({});
+  const [cells, setCells] = useState<Record<string, string>>({
+    '0-0': '0-0',
+    '0-1': '0-1',
+    '0-2': '0-2',
+    '1-0': '1-0',
+    '1-1': '1-1',
+    '1-2': '1-2',
+    '2-0': '2-0',
+    '2-1': '2-1',
+    '2-2': '2-2',
+  });
+
   return (
     <>
       <table>
         <thead>
-          <th>Columna1</th>
-          <th>Columna2</th>
-          <th>Columna3</th>
-          <th>Columna4</th>
-          <th>Columna5</th>
-          <th>Columna6</th>
-          <th>Columna7</th>
-          <th>Columna8</th>
-          <th>Columna9</th>
-          <th>Columna10</th>
+          {Array.from({ length: 3 }, (_, index) => (
+            <th>Columna {index}</th>
+          ))}
         </thead>
         <tbody>
-          {Array.from({ length: 10 }, (_, row) => (
+          {Array.from({ length: 3 }, (_, row) => (
             <tr key={row}>
-              {Array.from({ length: 10 }, (_, col) => (
+              {Array.from({ length: 3 }, (_, col) => (
                 <td key={`${row}-${col}`} className="border border-gray-100">
                   <SpreadsheetCell
                     cellId={`${row}-${col}`}

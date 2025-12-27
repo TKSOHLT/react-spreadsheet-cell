@@ -52,7 +52,7 @@ export default function SpreadsheetCell({
   onFocus,
 
   padding = 'px-2 py-1',
-  width = 'w-40',
+  width = 'w-full',
   height = 'h-8',
   insetPadding = 'px-2',
   bgColorInactive = 'bg-white',
