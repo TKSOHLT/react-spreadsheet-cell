@@ -10,6 +10,7 @@ import Edition from '../pages/Edition';
 import CopyPaste from '../pages/CopyPaste';
 import Personalization from '../pages/Personalization';
 import LandingPage from '../pages/LandingPage';
+import NotFound from '../pages/NotFound';
 
 export default function Router() {
   return (
@@ -17,8 +18,8 @@ export default function Router() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
 
-        <Route element={<Layout />} path='/docs'>
-          <Route path="instalation" element={<Instalation />} />
+        <Route element={<Layout />} path="/docs">
+          <Route index path="instalation" element={<Instalation />} />
           <Route path="quick-start" element={<QuickStart />} />
           <Route path="components" element={<Components />} />
           <Route path="properties" element={<Properties />} />
@@ -28,6 +29,8 @@ export default function Router() {
           <Route path="copy-paste" element={<CopyPaste />} />
           <Route path="personalization" element={<Personalization />} />
         </Route>
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
