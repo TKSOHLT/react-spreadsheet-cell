@@ -44,12 +44,11 @@ export default function DocsNavigation() {
   const section = getSection(pathname);
 
   return (
-    <div className="border-b-2 border-gray-200 mb-4 md:w-[256px] md:border-none md:mb-0 py-2 md:py-5 md:px-2">
+    <div className="sticky top-14 border-b-2 border-gray-200 mb-4 md:border-none md:mb-0 py-2 md:py-0">
       {/* Botón mobile */}
       {section && (
         <button onClick={() => setOpen(!open)} className="flex items-center gap-5 md:hidden px-4 py-2 w-full">
           <Menu size={24} className='cursor-pointer'/>
-          {/* Pequeño breadcrum */}
           <div className="flex flex-row text-xl text-gray-700 items-center">
             <p>Docs</p>
             <ChevronRight size={15} />
@@ -63,7 +62,7 @@ export default function DocsNavigation() {
           ${open ? 'flex' : 'hidden'}
           flex-col gap-2 mt-4
           absolute w-full bg-white inset-x-0 px-2 py-2 shadow-xl rounded-xl z-10
-          md:relative md:flex md:mt-0 md:gap-0 md:px-0 md:py-0 md:rounded-none md:shadow-none
+          md:relative md:flex md:mt-0 md:gap-0 md:px-2 md:py-5 md:rounded-none md:shadow-none md:h-[calc(100vh-5rem)] md:overflow-y-auto
         `}
       >
         <NavButton to={'instalation'}>
