@@ -22,7 +22,7 @@ interface CopiedData {
   values: string[][];
 }
 
-interface SpreadsheetContextValue {
+export type SpreadsheetContextValue = {
   selectedCell: string | null;
   selectCell: (cellId: string, extendSelection?: boolean) => void;
   selectedCells: Set<string>;
@@ -55,7 +55,7 @@ interface SpreadsheetContextValue {
 
 export const SpreadsheetContext = createContext<SpreadsheetContextValue | null>(null);
 
-export default function SpreadsheetProvider({ children }: { children: React.ReactNode }) {
+export function SpreadsheetCellProvider({ children }: { children: React.ReactNode }) {
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
   const [selectionStart, setSelectionStart] = useState<string | null>(null);

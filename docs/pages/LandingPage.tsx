@@ -1,6 +1,6 @@
-import { ArrowRight, BookOpen, Check, Copy, Github, Keyboard, MousePointer2 } from 'lucide-react';
+import { BookOpen, Check, Copy, Github, Keyboard, MousePointer2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import SpreadsheetCell from '../components/SpreadsheetCell';
+import { SpreadsheetCell } from '../../src';
 import { useState } from 'react';
 
 export default function LandingPage() {

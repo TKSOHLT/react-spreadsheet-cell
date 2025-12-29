@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import SpreadsheetCell from '../SpreadsheetCell';
 import ExampleCard from '../ui/ExampleCard';
+import { SpreadsheetCell } from '../../../src';
 
 export default function Example1() {
   const [cells, setCells] = useState<Record<string, string>>({

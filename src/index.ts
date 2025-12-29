@@ -1,18 +1,13 @@
-export interface SelectionContextValue {
-  isDragging: boolean;
-  startDragging: (cellId: string, row: number, col: number) => void;
-  stopDragging: () => void;
-  updateSelection: (cellId: string, row: number, col: number) => void;
-  clearSelection: () => void;
-  isSelected: (cellId: string) => boolean;
-  selectedCells: Set<string>;
-}
+export { SpreadsheetCell } from './components/SpreadsheetCell';
+export { SpreadsheetCellProvider } from './context/SpreadsheetCellContext';
+export { useSpreadsheetCell } from './hooks/useSpreadsheetCell';
 
-export interface SelectOption {
-  value: string | number;
-  label: string;
-}
+export type {
+  SelectionContextValue,
+  SelectOption,
+  CellType,
+} from './types/types';
 
-export type CellType = 'text' | 'number' | 'select';
-
-
+export type {
+  SpreadsheetContextValue
+} from './context/SpreadsheetCellContext'

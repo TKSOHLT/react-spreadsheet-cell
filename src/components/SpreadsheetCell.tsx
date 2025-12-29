@@ -37,7 +37,7 @@ interface SpreadsheetCellProps {
   copiedOutlineColor?: string;
 }
 
-export default function SpreadsheetCell({
+export function SpreadsheetCell({
   initialValue = '',
   cellId,
   row,
