@@ -6,7 +6,7 @@ export default function Layout() {
     <>
       <header className="fixed top-0 inset-x-0 z-50 px-6 py-4 bg-white border-b border-gray-100 shadow-sm">
         <h1 className="text-2xl font-semibold text-gray-800">
-          React <span className="text-green-600 font-bold">Spreadsheet</span> Cell
+          React <span className="text-blue-600 font-bold">Spreadsheet</span> Cell
         </h1>
       </header>
       
