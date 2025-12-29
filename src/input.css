@@ -1,1 +1,76 @@
+/* src/input.css - Tailwind v4 Configuration */
 @import "tailwindcss";
+
+@layer utilities {
+  /* Blue scheme */
+  .bg-blue-50 {}
+  .bg-blue-100 {}
+  .inset-ring-blue-500 {}
+  .inset-ring-blue-600 {}
+  .ring-blue-300 {}
+  .outline-blue-500 {}
+  .inset-shadow-blue-600 {}
+  
+  /* Purple scheme */
+  .bg-purple-50 {}
+  .bg-purple-100 {}
+  .inset-ring-purple-500 {}
+  .inset-ring-purple-600 {}
+  .ring-purple-300 {}
+  .outline-purple-500 {}
+  .inset-shadow-purple-600 {}
+  
+  /* Green scheme */
+  .bg-green-50 {}
+  .bg-green-100 {}
+  .inset-ring-green-500 {}
+  .inset-ring-green-600 {}
+  .ring-green-300 {}
+  .outline-green-500 {}
+  .inset-shadow-green-600 {}
+  
+  /* Red scheme */
+  .bg-red-50 {}
+  .bg-red-100 {}
+  .inset-ring-red-500 {}
+  .inset-ring-red-600 {}
+  .ring-red-300 {}
+  .outline-red-500 {}
+  .inset-shadow-red-600 {}
+  
+  /* Gray scheme */
+  .bg-gray-50 {}
+  .bg-gray-100 {}
+  .inset-ring-gray-500 {}
+  .inset-ring-gray-600 {}
+  .ring-gray-300 {}
+  .outline-gray-500 {}
+  .inset-shadow-gray-600 {}
+  
+  /* Orange scheme */
+  .bg-orange-50 {}
+  .bg-orange-100 {}
+  .inset-ring-orange-500 {}
+  .inset-ring-orange-600 {}
+  .ring-orange-300 {}
+  .outline-orange-500 {}
+  .inset-shadow-orange-600 {}
+  
+  /* Pink scheme */
+  .bg-pink-50 {}
+  .bg-pink-100 {}
+  .inset-ring-pink-500 {}
+  .inset-ring-pink-600 {}
+  .ring-pink-300 {}
+  .outline-pink-500 {}
+  .inset-shadow-pink-600 {}
+  
+  /* Cyan scheme */
+  .bg-cyan-50 {}
+  .bg-cyan-100 {}
+  .inset-ring-cyan-500 {}
+  .inset-ring-cyan-600 {}
+  .ring-cyan-300 {}
+  .outline-cyan-500 {}
+  .inset-shadow-cyan-600 {}
+}

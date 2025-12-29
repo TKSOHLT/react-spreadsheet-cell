@@ -1,6 +1,158 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSpreadsheetCell } from '../hooks/useSpreadsheetCell';
 
+type ColorScheme = 'blue' | 'purple' | 'green' | 'red' | 'gray' | 'orange' | 'pink' | 'cyan';
+
+interface ColorConfig {
+  // Estados base
+  bgInactive: string;
+  bgActive: string;
+  bgDisabled: string;
+  ringInactive: string;
+  ringActive: string;
+  
+  // Estados de selección
+  selectedBg: string;
+  selectedRing: string;
+  
+  // Multi-selección
+  multiSelectBg: string;
+  multiSelectRing: string;
+  
+  // Copiado
+  copiedBg: string;
+  copiedOutline: string;
+  
+  // Hover
+  hoverRing: string;
+  
+  // Shadow en edición
+  editShadow: string;
+}
+
+const colorSchemes: Record<ColorScheme, ColorConfig> = {
+  blue: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-blue-600',
+    selectedBg: 'bg-blue-50',
+    selectedRing: 'inset-ring-blue-500',
+    multiSelectBg: 'bg-blue-100',
+    multiSelectRing: 'ring-blue-300',
+    copiedBg: 'bg-blue-50',
+    copiedOutline: 'outline-blue-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-blue-600',
+  },
+  purple: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-purple-600',
+    selectedBg: 'bg-purple-50',
+    selectedRing: 'inset-ring-purple-500',
+    multiSelectBg: 'bg-purple-100',
+    multiSelectRing: 'ring-purple-300',
+    copiedBg: 'bg-purple-50',
+    copiedOutline: 'outline-purple-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-purple-600',
+  },
+  green: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-green-600',
+    selectedBg: 'bg-green-50',
+    selectedRing: 'inset-ring-green-500',
+    multiSelectBg: 'bg-green-100',
+    multiSelectRing: 'ring-green-300',
+    copiedBg: 'bg-green-50',
+    copiedOutline: 'outline-green-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-green-600',
+  },
+  red: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-red-600',
+    selectedBg: 'bg-red-50',
+    selectedRing: 'inset-ring-red-500',
+    multiSelectBg: 'bg-red-100',
+    multiSelectRing: 'ring-red-300',
+    copiedBg: 'bg-red-50',
+    copiedOutline: 'outline-red-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-red-600',
+  },
+  gray: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-gray-600',
+    selectedBg: 'bg-gray-50',
+    selectedRing: 'inset-ring-gray-500',
+    multiSelectBg: 'bg-gray-100',
+    multiSelectRing: 'ring-gray-300',
+    copiedBg: 'bg-gray-50',
+    copiedOutline: 'outline-gray-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-gray-600',
+  },
+  orange: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-orange-600',
+    selectedBg: 'bg-orange-50',
+    selectedRing: 'inset-ring-orange-500',
+    multiSelectBg: 'bg-orange-100',
+    multiSelectRing: 'ring-orange-300',
+    copiedBg: 'bg-orange-50',
+    copiedOutline: 'outline-orange-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-orange-600',
+  },
+  pink: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-pink-600',
+    selectedBg: 'bg-pink-50',
+    selectedRing: 'inset-ring-pink-500',
+    multiSelectBg: 'bg-pink-100',
+    multiSelectRing: 'ring-pink-300',
+    copiedBg: 'bg-pink-50',
+    copiedOutline: 'outline-pink-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-pink-600',
+  },
+  cyan: {
+    bgInactive: 'bg-white',
+    bgActive: 'bg-white',
+    bgDisabled: 'bg-gray-100',
+    ringInactive: 'ring-gray-200',
+    ringActive: 'inset-ring-cyan-600',
+    selectedBg: 'bg-cyan-50',
+    selectedRing: 'inset-ring-cyan-500',
+    multiSelectBg: 'bg-cyan-100',
+    multiSelectRing: 'ring-cyan-300',
+    copiedBg: 'bg-cyan-50',
+    copiedOutline: 'outline-cyan-500',
+    hoverRing: 'hover:ring-gray-300',
+    editShadow: 'inset-shadow-cyan-600',
+  },
+};
+
 interface SpreadsheetCellProps {
   initialValue?: string;
   cellId: string;
@@ -15,26 +167,20 @@ interface SpreadsheetCellProps {
   onValueChange?: (value: string) => void;
   onFocus?: () => void;
 
+  // Sistema de color simplificado
+  colorScheme?: ColorScheme;
+
+  // Props de dimensiones y espaciado
   padding?: string;
   width?: string;
   height?: string;
   insetPadding?: string;
-  bgColorInactive?: string;
-  bgColorActive?: string;
-  bgColorDisabled?: string;
-  ringColorInactive?: string;
-  ringColorActive?: string;
+  
+  // Props de ancho de ring
   ringWidthInactive?: string;
   ringWidthActive?: string;
-  hoverRingColor?: string;
-  selectedBgColor?: string;
-  selectedRingColor?: string;
   selectedRingWidth?: string;
-  multiSelectBgColor?: string;
-  multiSelectRingColor?: string;
   multiSelectRingWidth?: string;
-  copiedBgColor?: string;
-  copiedOutlineColor?: string;
 }
 
 export function SpreadsheetCell({
@@ -51,32 +197,29 @@ export function SpreadsheetCell({
   onValueChange,
   onFocus,
 
+  // Color scheme
+  colorScheme = 'blue',
+
+  // Dimensiones
   padding = 'px-2 py-1',
   width = 'w-full',
   height = 'h-8',
   insetPadding = 'px-2',
-  bgColorInactive = 'bg-white',
-  bgColorActive = 'bg-white',
-  bgColorDisabled = 'bg-gray-100',
-  ringColorInactive = 'ring-gray-200',
-  ringColorActive = 'inset-ring-blue-600',
+  
+  // Anchos de ring
   ringWidthInactive = 'inset-ring-[0]',
   ringWidthActive = 'inset-ring-1',
-  hoverRingColor = 'hover:ring-gray-300',
-  selectedBgColor = 'bg-blue-50',
-  selectedRingColor = 'inset-ring-blue-500',
   selectedRingWidth = 'inset-ring-3',
-  multiSelectBgColor = 'bg-blue-100',
-  multiSelectRingColor = 'ring-blue-300',
   multiSelectRingWidth = 'ring-1',
-  copiedBgColor = 'bg-green-50',
-  copiedOutlineColor = 'outline-green-500',
 }: SpreadsheetCellProps) {
   const [value, setValue] = useState<string>(initialValue);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const selectRef = useRef<HTMLSelectElement | null>(null);
   const cellRef = useRef<HTMLDivElement | null>(null);
   const [shouldSelectAll, setShouldSelectAll] = useState(true);
+
+  // Obtener la configuración de colores basada en el scheme
+  const colors = colorSchemes[colorScheme];
 
   const {
     selectedCell,
@@ -158,14 +301,12 @@ export function SpreadsheetCell({
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault();
 
-        // Intentar pegar datos copiados del spreadsheet
         const copiedData = getCopiedData();
 
         if (copiedData) {
           const { values } = copiedData;
           const selectedRange = getSelectedRange();
 
-          // Si hay un rango seleccionado
           if ((selectedRange && selectedRange.rows > 1) || (selectedRange && selectedRange.cols > 1)) {
             const { minRow, minCol, rows: selectedRows, cols: selectedCols } = selectedRange;
             const copiedRows = values.length;
@@ -184,7 +325,6 @@ export function SpreadsheetCell({
             });
             window.dispatchEvent(pasteEvent);
           } else {
-            // Pegar desde una celda específica
             const [currentRow, currentCol] = cellId.split('-').map(Number);
 
             const pasteEvent = new CustomEvent('spreadsheet-paste', {
@@ -201,7 +341,6 @@ export function SpreadsheetCell({
           return;
         }
 
-        // Si no hay datos copiados del spreadsheet, intentar del clipboard
         try {
           const clipboardText = await navigator.clipboard.readText();
 
@@ -214,7 +353,6 @@ export function SpreadsheetCell({
               const selectedRange = getSelectedRange();
 
               if (selectedRange && (selectedRange.rows > 1 || selectedRange.cols > 1)) {
-                // Pegar en rango seleccionado
                 const { minRow, minCol, rows: selectedRows, cols: selectedCols } = selectedRange;
                 const copiedRows = rows.length;
                 const copiedCols = rows[0]?.length || 0;
@@ -232,7 +370,6 @@ export function SpreadsheetCell({
                 });
                 window.dispatchEvent(pasteEvent);
               } else {
-                // Pegar desde celda específica
                 const pasteEvent = new CustomEvent('spreadsheet-paste', {
                   detail: {
                     startRow: currentRow,
@@ -243,7 +380,6 @@ export function SpreadsheetCell({
                 window.dispatchEvent(pasteEvent);
               }
             } else {
-              // Paste simple de una sola celda
               setValue(clipboardText);
               onValueChange?.(clipboardText);
             }
@@ -292,7 +428,6 @@ export function SpreadsheetCell({
 
       const { startRow, startCol, values } = customEvent.detail;
 
-      // Verificar si esta celda está dentro del rango de pegado
       for (let r = 0; r < values.length; r++) {
         for (let c = 0; c < values[r].length; c++) {
           const targetRow = startRow + r;
@@ -321,7 +456,6 @@ export function SpreadsheetCell({
 
       const { startRow, startCol, targetRows, targetCols, copiedRows, copiedCols, values } = customEvent.detail;
 
-      // Verificar si esta celda está dentro del rango de pegado
       for (let r = 0; r < targetRows; r++) {
         for (let c = 0; c < targetCols; c++) {
           const targetRow = startRow + r;
@@ -329,7 +463,6 @@ export function SpreadsheetCell({
           const targetCellId = `${targetRow}-${targetCol}`;
 
           if (targetCellId === cellId) {
-            // Usar módulo para repetir el patrón
             const sourceRow = r % copiedRows;
             const sourceCol = c % copiedCols;
             const value = values[sourceRow]?.[sourceCol] || '';
@@ -484,7 +617,7 @@ export function SpreadsheetCell({
   };
 
   const renderEditMode = () => {
-    const inputClassName = `w-full h-full outline-none ${bgColorActive} ${insetPadding} disabled:${bgColorDisabled} disabled:cursor-not-allowed`;
+    const inputClassName = `w-full h-full outline-none ${colors.bgActive} ${insetPadding} disabled:${colors.bgDisabled} disabled:cursor-not-allowed`;
 
     if (cellType === 'select') {
       return (
@@ -543,9 +676,8 @@ export function SpreadsheetCell({
     const classes = ['min-w-40 max-w-full min-h-full transition-all', padding, width, height];
 
     if (disabled) {
-      classes.push(bgColorDisabled, 'cursor-not-allowed opacity-60');
+      classes.push(colors.bgDisabled, 'cursor-not-allowed opacity-60');
     } else {
-      // Cursor durante drag
       if (isDragging || dragStartCell) {
         classes.push('cursor-cell');
       } else {
@@ -553,21 +685,21 @@ export function SpreadsheetCell({
       }
 
       if (isEditing) {
-        classes.push(bgColorActive, ringWidthActive, ringColorActive, 'inset-shadow-lg inset-shadow-cyan-600');
+        classes.push(colors.bgActive, ringWidthActive, colors.ringActive, 'inset-shadow-lg', colors.editShadow);
       } else if (isSelected) {
-        classes.push(selectedBgColor, selectedRingWidth, selectedRingColor);
+        classes.push(colors.selectedBg, selectedRingWidth, colors.selectedRing);
       } else if (inMultiSelection) {
-        classes.push(multiSelectBgColor, multiSelectRingWidth, multiSelectRingColor);
+        classes.push(colors.multiSelectBg, multiSelectRingWidth, colors.multiSelectRing);
       } else {
-        classes.push(bgColorInactive, ringWidthInactive, ringColorInactive);
+        classes.push(colors.bgInactive, ringWidthInactive, colors.ringInactive);
       }
 
       if (isCopied && !isEditing) {
-        classes.push('outline-2 outline-dashed', copiedOutlineColor, copiedBgColor);
+        classes.push('outline-2 outline-dashed', colors.copiedOutline, colors.copiedBg);
       }
 
       if (!isEditing && !isDragging && !dragStartCell) {
-        classes.push(hoverRingColor);
+        classes.push(colors.hoverRing);
       }
     }
 
