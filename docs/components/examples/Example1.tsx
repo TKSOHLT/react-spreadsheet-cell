@@ -15,9 +15,10 @@ export default function Example1() {
     '2-2': '2-2',
   });
 
-  const codeString = `import { useState } from 'react';
-    import SpreadsheetProvider from './context/SpreadsheetCellContext';
-    import SpreadsheetCell from './components/SpreadsheetCell';
+  const codeString = `
+    import 'react-spreadsheet-cell/styles.css';
+    import { SpreadsheetCell, SpreadsheetCellProvider } from "react-spreadsheet-cell";
+    import { useState } from 'react';
 
     export default function MySpreadsheet() {
     const [cells, setCells] = useState<Record<string, string>>({

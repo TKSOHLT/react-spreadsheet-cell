@@ -22,7 +22,7 @@ export default function Components() {
         </p>
 
         <CodeFragment
-          codeString={`import SpreadsheetProvider from './context/SpreadsheetCellContext';
+          codeString={`import { SpreadsheetCellProvider } from "react-spreadsheet-cell";
 
 function App() {
   return (
@@ -64,7 +64,7 @@ function App() {
 
         <CodeFragment
           codeString={`
-import SpreadsheetCell from '../SpreadsheetCell';
+import { SpreadsheetCell } from "react-spreadsheet-cell";
 
 <SpreadsheetCell
     cellId={\`\${row}-\${col}\`}

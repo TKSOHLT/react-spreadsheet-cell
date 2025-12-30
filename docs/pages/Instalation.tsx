@@ -64,6 +64,7 @@ export default function Installation() {
             <p className="text-sm text-blue-700">
               <strong>Nota:</strong> Asegúrate de envolver tu aplicación con el{' '}
               <code className="bg-blue-100 px-1 rounded font-mono">SpreadsheetProvider</code> para que los componentes funcionen correctamente.
+              {' '} Además, recuerda importar los estilos <code className="bg-blue-100 px-1 rounded font-mono">{`import 'react-spreadsheet-cell/styles.css';`}</code>
             </p>
           </div>
         </div>
