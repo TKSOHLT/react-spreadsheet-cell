@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import Layout from '../layout/Layout';
 import Instalation from '../pages/Instalation';
 import QuickStart from '../pages/QuickStart';
@@ -14,7 +14,7 @@ import NotFound from '../pages/NotFound';
 
 export default function Router() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
 
@@ -32,6 +32,6 @@ export default function Router() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
