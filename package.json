@@ -33,6 +33,21 @@
     "build:docs": "vite build --config docs/vite.config.ts",
     "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "react",
+    "react-component",
+    "spreadsheet",
+    "spreadsheet-grid",
+    "data-grid",
+    "excel",
+    "table",
+    "editable-table",
+    "keyboard-navigation",
+    "copy-paste",
+    "selection",
+    "ui",
+    "frontend"
+  ],
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
