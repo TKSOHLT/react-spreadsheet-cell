@@ -1,0 +1,21 @@
+# Desarrollo
+src/
+*.test.tsx
+*.spec.tsx
+*.test.ts
+*.spec.ts
+.git/
+.github/
+node_modules/
+coverage/
+
+# Configuración
+tsconfig.json
+vite.config.ts
+.eslintrc
+.prettierrc
+
+# Otros
+.DS_Store
+*.log
+.env

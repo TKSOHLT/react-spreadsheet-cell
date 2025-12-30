@@ -30,6 +30,7 @@
     "build": "npm run build:lib && npm run build:css",
     "build:lib": "vite build --config vite.lib.config.ts",
     "build:css": "tailwindcss -i ./src/input.css -o ./dist/styles.css --minify",
+    "build:docs": "vite build --config docs/vite.config.ts",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
