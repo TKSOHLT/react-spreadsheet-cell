@@ -18,8 +18,9 @@ export default function Router() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
 
-        <Route element={<Layout />} path="/docs">
-          <Route index path="instalation" element={<Instalation />} />
+        <Route path="/docs" element={<Layout />}>
+          <Route index element={<Instalation />} />
+          <Route path="instalation" element={<Instalation />} />
           <Route path="quick-start" element={<QuickStart />} />
           <Route path="components" element={<Components />} />
           <Route path="properties" element={<Properties />} />
