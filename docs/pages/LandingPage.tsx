@@ -1,4 +1,5 @@
 import { BookOpen, Check, Copy, Github, Keyboard, MousePointer2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { SpreadsheetCell } from '../../src';
 import { useState } from 'react';
@@ -39,13 +40,13 @@ export default function LandingPage() {
               </h1>
             </div>
             <div className="flex gap-3">
-              <a
-                href="/docs/instalation"
+              <Link
+                to="/docs/instalation"
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:scale-110 active:scale-90 transition-all cursor-pointer"
               >
                 <BookOpen size={20} />
                 <span className="hidden sm:inline">Docs</span>
-              </a>
+              </Link>
               <a
                 href="https://github.com/TKSOHLT/react-spreadsheet-cell"
                 target="_blank"
@@ -327,9 +328,9 @@ function MyApp() {
             </a>
             <p className="text-sm">Con ❤️‍🔥 React SpreadsheetCell</p>
             <div className="flex gap-6">
-              <a href="/docs/instalation" className="hover:text-white hover:scale-110 active:scale-90 transition-all">
+              <Link to="/docs/instalation" className="hover:text-white hover:scale-110 active:scale-90 transition-all">
                 Docs
-              </a>
+              </Link>
               <a
                 href="https://github.com/TKSOHLT/react-spreadsheet-cell"
                 target="_blank"
