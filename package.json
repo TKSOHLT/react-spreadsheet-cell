@@ -9,6 +9,7 @@
     "type": "git",
     "url": "https://github.com/TKSOHLT/react-spreadsheet-cell"
   },
+  "homepage": "https://tksohlt.github.io/react-spreadsheet-cell/",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",

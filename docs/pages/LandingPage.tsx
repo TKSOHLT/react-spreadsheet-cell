@@ -338,7 +338,7 @@ function MyApp() {
               >
                 GitHub
               </a>
-              <a href="#" target="_blank" className="hover:text-white hover:scale-110 active:scale-90 transition-all">
+              <a href="https://www.npmjs.com/package/react-spreadsheet-cell" target="_blank" className="hover:text-white hover:scale-110 active:scale-90 transition-all">
                 NPM
               </a>
             </div>
