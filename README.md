@@ -1,13 +1,18 @@
 # React Spreadsheet Cell
 
-Componente de hoja de cálculo para React, interactivo y totalmente personalizable, con soporte completo de navegación por teclado, selección múltiple y copiar/pegar. Ideal para crear experiencias de datos profesionales dentro de tu app
+Excel-like spreadsheet component for React with full keyboard navigation, multi-cell selection, copy/paste support, and high customization.  
+Perfect for building data-heavy, professional user interfaces inside your application.
 
-## Instalación
+![npm](https://img.shields.io/npm/v/react-spreadsheet-cell)
+![downloads](https://img.shields.io/npm/dm/react-spreadsheet-cell)
+![license](https://img.shields.io/npm/l/react-spreadsheet-cell)
+
+## Installation
 ```bash
 npm install react-spreadsheet-cell
 ```
 
-## Uso Rápido
+## Quick Use
 ```jsx
 import { SpreadsheetCellProvider, SpreadsheetCell } from 'react-spreadsheet-cell';
 import 'react-spreadsheet-cell/styles.css';
@@ -36,42 +41,42 @@ function App() {
 }
 ```
 
-## Características
+## Characteristics
 
-- ✅ Navegación con flechas, Tab, Enter
-- ✅ Selección múltiple (Shift + Click/Arrows)
-- ✅ Copiar/Pegar (Ctrl+C / Ctrl+V)
-- ✅ Drag-to-select
-- ✅ Tipos: texto, número, select
-- ✅ 8 esquemas de color predefinidos
-- ✅ Totalmente personalizable
-- ✅ TypeScript support
+- ⌨️ Full keyboard navigation (arrows, tab, enter)
+- 🧠 Multi-cell selection (Shift + click / arrows)
+- 📋 Copy & paste support (Ctrl/Cmd + C / V)
+- 🖱️ Drag-to-select
+- 🔢 Cell types: text, number, select
+- 🎨 8 built-in color schemes
+- 🧩 Fully customizable
+- 🛡️ Written in TypeScript
 
-## Props Principales
+## Main Props
 
-| Prop | Tipo | Descripción |
+| Prop | Type | Description |
 |------|------|-------------|
-| `cellId` | `string` | ID único (formato: "row-col") |
-| `row` | `number` | Número de fila |
-| `col` | `number` | Número de columna |
-| `initialValue` | `string` | Valor inicial |
-| `cellType` | `'text' \| 'number' \| 'select'` | Tipo de celda |
-| `colorScheme` | `'blue' \| 'purple' \| 'green'...` | Esquema de color |
-| `onValueChange` | `(value: string) => void` | Callback al cambiar |
+| `cellId` | `string` | Unique ID (format: "row-col") |
+| `row` | `number` | Row number |
+| `col` | `number` | Column number |
+| `initialValue` | `string` | Initial value |
+| `cellType` | `'text' \| 'number' \| 'select'` | Cell type |
+| `colorScheme` | `'blue' \| 'purple' \| 'green'...` | Color scheme |
+| `onValueChange` | `(value: string) => void` | Callback on change |
 
-## Atajos de Teclado
+## Keyboard Shortcuts
 
-- **Flechas**: Navegar entre celdas
-- **Enter**: Editar celda / Ir abajo
-- **Tab**: Ir a la derecha
-- **Shift + Arrows/Click**: Selección múltiple
-- **Ctrl/Cmd + C**: Copiar
-- **Ctrl/Cmd + V**: Pegar
-- **Delete**: Borrar contenido
-- **Escape**: Cancelar edición
+- **Arrows** → Navigate between cells
+- **Enter** → Edit cell / Move down
+- **Tab** → Move right
+- **Shift** + Arrows / Click → Multi selection
+- **Ctrl/Cmd** + C → Copy
+- **Ctrl/Cmd** + V → Paste
+- **Delete** → Clear cell
+- **Escape** → Cancel editing
 
 
-## Licencia
+## License
 
 MIT
 

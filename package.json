@@ -1,7 +1,7 @@
 {
   "name": "react-spreadsheet-cell",
   "version": "1.0.0",
-  "description": "Editable spreadsheet-like cell for React",
+  "description": "Excel-like spreadsheet grid for React featuring keyboard navigation, multi-cell selection, copy and paste, and customizable cells.",
   "type": "module",
   "license": "MIT",
   "author": "TKSOHLT",
