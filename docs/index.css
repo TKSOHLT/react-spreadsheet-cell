@@ -1,1 +1,36 @@
 @import "tailwindcss";
+
+/* Configuración de content */
+@source "./index.html";
+@source "./**/*.{js,ts,jsx,tsx}";
+@source "../src/**/*.{js,ts,jsx,tsx}";
+
+/* Para forzar la inclusión de clases, créalas como variantes o úsalas en una regla oculta */
+@layer utilities {
+  /* Estas clases se generarán automáticamente */
+  .safelist-force {
+    /* Blue */
+    @apply bg-blue-50 bg-blue-100 inset-ring-blue-500 inset-ring-blue-600 ring-blue-300 outline-blue-500;
+    
+    /* Purple */
+    @apply bg-purple-50 bg-purple-100 inset-ring-purple-500 inset-ring-purple-600 ring-purple-300 outline-purple-500;
+    
+    /* Green */
+    @apply bg-green-50 bg-green-100 inset-ring-green-500 inset-ring-green-600 ring-green-300 outline-green-500;
+    
+    /* Red */
+    @apply bg-red-50 bg-red-100 inset-ring-red-500 inset-ring-red-600 ring-red-300 outline-red-500;
+    
+    /* Gray */
+    @apply bg-gray-50 bg-gray-100 inset-ring-gray-500 inset-ring-gray-600 ring-gray-300 outline-gray-500;
+    
+    /* Orange */
+    @apply bg-orange-50 bg-orange-100 inset-ring-orange-500 inset-ring-orange-600 ring-orange-300 outline-orange-500;
+    
+    /* Pink */
+    @apply bg-pink-50 bg-pink-100 inset-ring-pink-500 inset-ring-pink-600 ring-pink-300 outline-pink-500;
+    
+    /* Cyan */
+    @apply bg-cyan-50 bg-cyan-100 inset-ring-cyan-500 inset-ring-cyan-600 ring-cyan-300 outline-cyan-500;
+  }
+}

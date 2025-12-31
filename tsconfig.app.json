@@ -18,5 +18,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["docs"]
+  "include": ["docs", "docs/tailwind.config.ts"]
 }
